@@ -1,5 +1,6 @@
 require 'rake'
 require 'rspec/core/rake_task'
+require 'active_record'
 
 require_relative 'config/application'
 
@@ -19,9 +20,16 @@ desc "migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
 task "db:migrate" do
   ActiveRecord::Migrator.migrations_paths << File.dirname(__FILE__) + 'db/migrate'
   ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
-  ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
+  ActiveRecord::MigrationContext.new(ActiveRecord::Migrator.migrations_paths).migrate do |migration|
     ENV["SCOPE"].blank? || (ENV["SCOPE"] == migration.scope)
   end
+# task "db:migrate" do
+#   ActiveRecord::Migrator.migrations_paths << File.dirname(__FILE__) + 'db/migrate'
+#   ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
+
+#   ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
+#     ENV["SCOPE"].blank? || (ENV["SCOPE"] == migration.scope)
+#   end
 end
 
 desc "populate the test database with sample data"
