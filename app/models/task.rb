@@ -2,9 +2,6 @@ require_relative '../../config/application'
 
 class Task < ActiveRecord::Base
 
-	def description
-		return self.description
-	end
 end
 
 # require_relative '../../db/config'
