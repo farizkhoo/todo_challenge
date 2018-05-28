@@ -14,7 +14,7 @@ end
 
 def list_tasks
 	task_array = []
-	tasks = Task.all.select('id, idx, description, status')
+	tasks = Task.all
 	tasks.each do |task|
 		task_array << task
 	end
@@ -29,22 +29,25 @@ def list_tasks
 		longest_desc = 11
 	end
 	
-
 	puts "No.   " + "Description".ljust(longest_desc) + "   Status"
 	puts "===   " + "===========".ljust(longest_desc) + "   ======"
-	task_array.each do |task|
-		puts "#{task[:idx]}".ljust(6) + "#{task[:description]}".split.map(&:capitalize).join(' ').ljust(longest_desc) + "   " + "#{task[:status]}".capitalize
+	tasks.each_with_index do |task,index|
+		puts "#{index+1}.".ljust(6) + "#{task[:description]}".split.map(&:capitalize).join(' ').ljust(longest_desc) + "   " + "#{task[:status]}".capitalize
 	end
 end
 
-def update_index
-	def_index = 1
-	tasks = Task.all.select('id, idx')
-	tasks.each do |task|
-		updated_task = Task.find(task[:id])
-		updated_task.update(idx: "#{def_index}.")
-		def_index += 1
-	end
+def list_instructions
+	puts ""
+	puts "=============================================="
+	puts "Below are the list of commands you can execute"
+	puts "=============================================="
+	puts ""
+	puts "  --add (description) (status)            -> adds an entry into the todo list"
+	puts "  --help                                  -> displays commands"
+	puts "  --list                                  -> list all the tasks in the database"
+	puts "  --remove (index)                        -> remove tasks using index"
+	puts "  --update (index) (description) (status) -> updates tasks using index"
+	puts ""
 end
 
 input_array = ARGV
@@ -52,25 +55,29 @@ input_array = ARGV
 if input_array[0] == '--add'
 	description = input_array[1]
 	status = input_array[2]
-	idx = "#{Task.all.count+1}."
-	task = Task.new(idx: idx, description: description, status: status)
+	# idx = "#{Task.all.count+1}."
+	task = Task.new(description: description, status: status)
 	task.save
 elsif input_array[0] == '--list'
 	list_tasks
 elsif input_array[0] == '--update'
-	task = Task.find_by(idx: "#{input_array[1]}.")
-	if task != nil
+	if Task.count < input_array[1]
+		puts "Task number #{input_array[1]} is not found. Are you sure that this is the right task number?"
+	else
+		task = Task.first(input_array[1]).last
 		task.update(description: input_array[2], status: input_array[3])
-	else
-		puts "Task number #{input_array[1]} is not found. Are you sure that this is the right task number?"
 	end
+
 elsif input_array[0] == '--remove'
-	task = Task.find_by(idx: "#{input_array[1]}.")
-	if task != nil
-		task.destroy
-		update_index
-	else
+	if Task.count < input_array[1]
 		puts "Task number #{input_array[1]} is not found. Are you sure that this is the right task number?"
+	else
+		task = Task.first(input_array[1]).last
+		task.destroy
 	end
+elsif input_array[0] == '--help'
+	list_instructions
+else
+	puts "type --help for help"
 end
 
